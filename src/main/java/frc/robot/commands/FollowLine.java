@@ -1,16 +1,23 @@
 package frc.robot.commands;
 
 import edu.wpi.first.wpilibj2.command.Command;
-import frc.robot.subsystems.ReflectanceSensor;
+import frc.robot.subsystems.Drivetrain;
+
+import java.util.function.Supplier;
+
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 public class FollowLine extends Command{
-    private final ReflectanceSensor m_reflSensor;
+    private final Drivetrain drivetrain;
+    private final Supplier<Double> leftVoltageSupplier;
+    private final Supplier<Double> rightVoltageSupplier;
 
 
-    public FollowLine(ReflectanceSensor reflSensor){
-        m_reflSensor = reflSensor;
-        addRequirements(m_reflSensor);
+    public FollowLine(Drivetrain drivetrain, Supplier<Double> leftVoltageSupplier, Supplier<Double> rightVoltageSupplier){
+       this.drivetrain = drivetrain;
+       this.leftVoltageSupplier = leftVoltageSupplier;
+       this.rightVoltageSupplier = rightVoltageSupplier;
+       addRequirements(drivetrain);
     }
 
 
@@ -18,14 +25,14 @@ public class FollowLine extends Command{
     public void end(boolean interrupted) {
         // TODO Auto-generated method stub
         super.end(interrupted);
+        drivetrain.arcadeDrive(0, 0);
     }
 
 
     @Override
     public void execute() {
         // TODO Auto-generated method stub
-        double[] v = m_reflSensor.getValue();
-        SmartDashboard.putString("Reflect Data", v[0] + "," + v[1]);
+       drivetrain.arcadeDrive(1.0, 0);
     }
 
 
@@ -39,7 +46,15 @@ public class FollowLine extends Command{
     @Override
     public boolean isFinished() {
         // TODO Auto-generated method stub
-        return false;
+        return LeftIsOverLine();
+    }
+
+    private boolean LeftIsOverLine(){
+        return 4.0 > leftVoltageSupplier.get();
+    }
+
+    private boolean RightIsOverLine(){
+        return 4.0 > rightVoltageSupplier.get();
     }
 
     
