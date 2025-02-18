@@ -4,6 +4,7 @@
 
 package frc.robot;
 
+import edu.wpi.first.wpilibj.AnalogInput;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.XboxController;
@@ -13,7 +14,6 @@ import frc.robot.commands.AutonomousTime;
 import frc.robot.commands.FollowLine;
 import frc.robot.subsystems.Arm;
 import frc.robot.subsystems.Drivetrain;
-import frc.robot.subsystems.ReflectanceSensor;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.xrp.XRPOnBoardIO;
@@ -34,7 +34,8 @@ public class RobotContainer {
   private final Drivetrain m_drivetrain = new Drivetrain();
   private final XRPOnBoardIO m_onboardIO = new XRPOnBoardIO();
   private final Arm m_arm = new Arm();
-  private final ReflectanceSensor m_reflectSensor =  new ReflectanceSensor(0,1);
+  private final AnalogInput leftReflectanceSensor =  new AnalogInput(0);
+  private final AnalogInput rightReflectanceSensor =  new AnalogInput(1);
 
   // Assumes a gamepad plugged into channel 0
   private final Joystick m_controller = new Joystick(0);
@@ -46,6 +47,14 @@ public class RobotContainer {
   public RobotContainer() {
     // Configure the button bindings
     configureButtonBindings();
+
+    // Set Averaging of Reflectance Sensors
+    leftReflectanceSensor.setAverageBits(2);
+    rightReflectanceSensor.setAverageBits(2);
+
+    // Log Reflectance Sensor Input to SmartDashboard
+    SmartDashboard.putData("Left Reflect Sensor", leftReflectanceSensor);
+    SmartDashboard.putData("Right Reflect Sensor", rightReflectanceSensor);
   }
 
   /**
@@ -78,6 +87,7 @@ public class RobotContainer {
     // Setup SmartDashboard options
     m_chooser.setDefaultOption("Auto Routine Distance", new AutonomousDistance(m_drivetrain));
     m_chooser.addOption("Auto Routine Time", new AutonomousTime(m_drivetrain));
+    m_chooser.addOption("Follow Line", new FollowLine(m_drivetrain, leftReflectanceSensor::getAverageVoltage, rightReflectanceSensor::getAverageVoltage));
     SmartDashboard.putData(m_chooser);
   }
 
@@ -101,7 +111,7 @@ public class RobotContainer {
   }
 
   public Command getLineFollowCommand(){
-    return new FollowLine(m_reflectSensor);
+    return new FollowLine(m_drivetrain, leftReflectanceSensor::getAverageVoltage, rightReflectanceSensor::getAverageVoltage);
   }
 
 }
